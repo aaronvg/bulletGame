@@ -41,6 +41,7 @@ void Simulator::addPlane(int x, int y, int z, int d)
     groundRigidBody->setRestitution(1.0);
     groundRigidBody->setCollisionFlags(groundRigidBody->getCollisionFlags() ^ btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
     dynamicsWorld->addRigidBody(groundRigidBody);
+
 }
 
 void Simulator::addTile(Ogre::SceneNode* node, int xsize, int ysize, int zsize) 
@@ -57,6 +58,7 @@ void Simulator::addTile(Ogre::SceneNode* node, int xsize, int ysize, int zsize)
     dynamicsWorld->addRigidBody(groundRigidBody);
 
     tiles.push_back(groundRigidBody);
+    tileNodes.push_back(node);
 }
 
 bool Simulator::simulateStep(double delay)
@@ -72,6 +74,7 @@ bool Simulator::simulateStep(double delay)
     }
     return targethit;
 }
+
 
 void Simulator::removeBall(Ball* ball) {
     btRigidBody* body = ball->getRigidBody();

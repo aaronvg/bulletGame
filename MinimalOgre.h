@@ -51,12 +51,13 @@ public:
     OIS::Mouse * getMouse(void) { return mMouse; }
     OIS::Keyboard * getKeyboard(void) { return mKeyboard; }
 protected:
-    const static int WALL_SIZE = 2400;
+    const static int WALL_SIZE = 6400;
     const static int PLANE_DIST = WALL_SIZE / 2; //the initial offset from the center
     const static int NUM_TILES_ROW = 5; // number of tiles in each row of a wall.
     const static int NUM_TILES_WALL = NUM_TILES_ROW * NUM_TILES_ROW; //number of total tiles on a wall.
     const static int TILE_WIDTH = WALL_SIZE / NUM_TILES_ROW;
     bool gameStart;
+    bool newgame;
     int currLevel;
     int currTile;
 
@@ -65,6 +66,7 @@ protected:
     bool moving;
     Ogre::SceneNode* theCube;
      Cube* cubeObject;
+     Cube* cubeObject2;
     std::deque<Ogre::SceneNode *> tileList;
     std::deque<Ogre::Entity *> tileEntities;
 

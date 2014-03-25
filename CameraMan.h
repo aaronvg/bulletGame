@@ -49,8 +49,8 @@ class CameraMan : public OgreBites::SdkCameraMan
             if (mVelocity != Ogre::Vector3::ZERO)
                 mCamera->move(mVelocity * evt.timeSinceLastFrame);
 
-            int minbound = -1100.0;
-            int maxbound = 1100.0;
+            int minbound = -2100.0; //1100
+            int maxbound = 2100.0;
 
             if(mCamera->getPosition().x > maxbound)
                 mCamera->setPosition(maxbound, mCamera->getPosition().y, mCamera->getPosition().z);

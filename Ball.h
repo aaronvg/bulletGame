@@ -30,11 +30,13 @@ public:
         btVector3 sphereInertia(0, 0, 0);
         collisionShape->calculateLocalInertia(mass, sphereInertia);
         btRigidBody::btRigidBodyConstructionInfo ballCI(mass, motionState, collisionShape, sphereInertia);
+        ballCI.m_friction = 10.0;
         rigidBody = new btRigidBody(ballCI);
         rigidBody->setCollisionFlags(rigidBody->getCollisionFlags() ^ btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
-        rigidBody->setAngularFactor(0.0f); //disables spinning on the objects.
+        rigidBody->setAngularFactor(0.1f); //disables spinning on the objects.
         rigidBody->setRestitution(0);
         rigidBody->setDamping(.5, 0);
+       //rigidBody->setGravity(btVector3(0, -980, 0));
     }
 
     void increaseMass(int mass) {

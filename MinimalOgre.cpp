@@ -288,22 +288,26 @@ bool MinimalOgre::go(void)
     headNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
     headNode->attachObject(ballMesh);
 
-    Ball* ball = new Ball(headNode, -80, 0, 20, 100);
+    Ball* ball = new Ball(headNode, -80, 0, -350, 100);
     sim->addMainBall(ball);
     ball->removeGravity();
     // Create tile meshes and collision objects for each tile.
     levelSetup(1);
 
     theCube = mSceneMgr->getRootSceneNode()->createChildSceneNode("cubeNode");
-    cubeObject = new Cube(theCube, 12, mSceneMgr, sim);
+    cubeObject = new Cube(12, mSceneMgr, sim);
     theCube->setPosition(Ogre::Vector3(-40, 10, 80));
+
+    // TODO, constructor determines where we start building cube.
+   // cubeObject = new Cube(theCube, 12, mSceneMgr, sim);
+
     // setUpBalls(5);
 
     // Handles the simonSays initial animation:
     gameStart = true;
     currTile = tileEntities.size() - 1; // which tile has to be lit up first
 
-
+    newgame = false;
     score = 0;
 
     // Set ambient light
@@ -313,7 +317,7 @@ bool MinimalOgre::go(void)
     Ogre::Light* lSun = mSceneMgr->createLight("SunLight");
     lSun->setType(Ogre::Light::LT_POINT);
     lSun->setDiffuseColour(0.95, 0.95, 1.00);
-    lSun->setPosition(0,1400,0);
+    lSun->setPosition(2000,-1000,0);
     lSun->setAttenuation(3250, 1.0, 0.0000000001, 0.000001);
     lSun->setCastShadows(false);
 //-------------------------------------------------------------------------------------
@@ -388,7 +392,6 @@ bool MinimalOgre::go(void)
 //  - attaches textured tiles placed at random locations
 //  to the main SceneNode depending on what level it is.
 void MinimalOgre::levelSetup(int num) {
-    Ogre::Plane wallTile = Ogre::Plane(Ogre::Vector3::UNIT_X, -PLANE_DIST +1);
 
     int x = 0;
     int y = 0;
@@ -400,6 +403,7 @@ void MinimalOgre::levelSetup(int num) {
     srand(time(0));
 
     for(int i = 0; i < num; i++) {
+        Ogre::Plane wallTile = Ogre::Plane(Ogre::Vector3::UNIT_X, -PLANE_DIST +1);
         std::stringstream ss;
 
         std::stringstream ssDebug;
@@ -568,21 +572,22 @@ bool MinimalOgre::frameRenderingQueued(const Ogre::FrameEvent& evt)
     if(moving)
     {
         // move the cube.
-        std::cout << "position " << theCube->getPosition() << std::endl;
+       // std::cout << "position " << theCube->getPosition() << std::endl;
         Ogre::Vector3 pos = theCube->getPosition();
-      //  theCube->setPosition(++pos.x, pos.y, pos.z); //change position of the scenenode
-        if(pos.x > 600) {
-       //     theCube->setPosition(0, pos.y, pos.z);
-        }
         cubeObject->moveRight();
     }
 
+    // if we press "n" on the keyboard, it toggles the gradual cubeReset.
+    if(newgame) {
+        cubeObject->resetCube();
+    }
 
     // If this is the first time we start the game, lets play the simon says animation
     if(gameStart) {
         timer.reset();
         gameStart = false;
     }
+
 
     //simonSaysAnim();
 
@@ -638,9 +643,10 @@ bool MinimalOgre::frameRenderingQueued(const Ogre::FrameEvent& evt)
         }
         scorePanel->setParamValue(0, Ogre::StringConverter::toString(score));
     }
-
     return true;
 }
+
+
 
 // Lights up the tiles in the tileEntities, from the back of the deque to the front.
 void MinimalOgre::simonSaysAnim() {
@@ -787,6 +793,9 @@ bool MinimalOgre::keyPressed( const OIS::KeyEvent &arg )
         moving = !moving;
         
     }
+    else if(arg.key == OIS::KC_N) {
+        newgame = !newgame;
+    }
 
     mCameraMan->injectKeyDown(arg);
     return true;
@@ -828,13 +837,16 @@ bool MinimalOgre::mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID i
     int x = mCamera->getPosition().x;
     int y = mCamera->getPosition().y;
     int z = mCamera->getPosition().z;
-     nodepc->setScale(Ogre::Vector3(.5, .5, .5));
+     //nodepc->setScale(Ogre::Vector3(.5, .5, .5));
 
-    //globalBall->setPosition(x, y, z);
-    globalBall = new Ball(nodepc, x, y, z, 100);
-    globalBall->increaseMass(10);
+      float ballSize = 220; //diameter
+        // default size of sphere mesh is 200.
+     float meshSize =  ballSize / 200; //200 is size of the sphere mesh. 100 is size of square.
+    nodepc->setScale(Ogre::Vector3(meshSize, meshSize, meshSize));
+    globalBall = new Ball(nodepc, x, y, z, ballSize/2);
+    globalBall->increaseMass(15);
     sim->addBall(globalBall);
-    double force = 80000.0;
+    double force = 150000.0;
     Ogre::Vector3 direction = mCamera->getOrientation() * Ogre::Vector3::NEGATIVE_UNIT_Z;
     globalBall->applyForce(force * direction.x, force * direction.y, force * direction.z);
 

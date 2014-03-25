@@ -6,15 +6,16 @@ public:
     double x, y, z;
     Ogre::SceneNode* node;
     std::deque<Ball *> ballList;
+    std::deque<Ogre::Vector3> positionList;
     Simulator* simulator;
   public:
     
-    Cube(Ogre::SceneNode* newnode, int cubeSize, Ogre::SceneManager* mSceneMgr, Simulator* sim)
+    Cube(int cubeSize, Ogre::SceneManager* mSceneMgr, Simulator* sim)
     {
-        node = newnode;
+        //node = newnode;
              // 10, 20
-        cubeSize = 7;
-        float ballSize = 50; //diameter
+        cubeSize = 12;
+        float ballSize = 20; //diameter
         // default size of sphere mesh is 200.
         float meshSize =  ballSize / 100; //200 is size of the sphere mesh. 100 is size of square.
 
@@ -23,13 +24,16 @@ public:
                 for(int z = 0; z < cubeSize; z++) {
                    
                     Ogre::Entity* ballMeshpc = mSceneMgr->createEntity("cube.mesh");
-                    Ogre::SceneNode* nodepc = node->createChildSceneNode(); //node is the node that holds the cube.
+                    Ogre::SceneNode* nodepc = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+
+                    //node->createChildSceneNode(); //node is the node that holds the cube.
                                                                             // we attach all balls to this node.
                     nodepc->attachObject(ballMeshpc);
                     nodepc->setScale(Ogre::Vector3(meshSize, meshSize, meshSize));
                     Ball* ball = new Ball(nodepc, x * ballSize, y * ballSize, z * ballSize, ballSize/2);
                     sim->addBall(ball);
                     ballList.push_front(ball);
+                    positionList.push_front(Ogre::Vector3(x * ballSize, y * ballSize, z * ballSize)); //saves original position that they were in.
                 }
             }
         }
@@ -37,49 +41,64 @@ public:
     }
 
     void moveRight() {
-      
-     
         btRigidBody* body;
-        Ball * ball;
-        Ogre::Vector3 pos = node->getPosition();
-        node->setPosition(++pos.x, pos.y, pos.z); //change position of the scenenode
-        if(pos.x > 200)
-            node->setPosition(0, pos.y, pos.z);
+        Ball * ball = ballList[0];
+        Ogre::Vector3 pos = ball->node->getPosition();
+        //node->setPosition(++pos.x, pos.y, pos.z); //change position of the scenenode
+        std::cout << "positionNode " << ball->node->getPosition() <<std::endl;
+
         for(int i = 0; i < ballList.size(); i++) {
-            // get rigidbody
             ball = ballList[i];
             body = ball->getRigidBody();
             Ogre::Vector3 ballPos = ball->node->getPosition();
-           // node->setPosition(++ballPos.x, ballPos.y, ballPos.z);
-
-            simulator->dynamicsWorld->removeRigidBody(body);
-
+            if(ballPos.x > 1000) {
+                ball->node->setPosition(ballPos.x - 1800, ballPos.y, ballPos.z);
+                positionList[i].x -= 1800; //update cube position.
+            }
+            else {
+                ball->node->setPosition(ballPos.x + 5, ballPos.y, ballPos.z);
+                positionList[i].x += 5;
+            }
+            
             btTransform newTrans = body->getWorldTransform();
-            newTrans.setOrigin( btVector3((ball->node->_getDerivedPosition().x), ball->node->_getDerivedPosition().y,
-              ball->node->_getDerivedPosition().z));
-         //   newTrans.setOrigin( btVector3((ball->node->getPosition().x), ball->node->getPosition().y,
-         //       ball->node->getPosition().z));
+
+            newTrans.setOrigin( btVector3((ball->node->getPosition().x), ball->node->getPosition().y,
+                ball->node->getPosition().z));
             //newTrans.setRotation( newRotation );
-
-            btTransform btt;
-            btt.setOrigin(btt.getOrigin()--);
-
-            std::cout << "positionNode " << ball->node->getPosition() <<std::endl;
             body->setWorldTransform( newTrans );
 
-
             //add it again
-            simulator->dynamicsWorld->addRigidBody(body);
+            // simulator->dynamicsWorld->addRigidBody(body);
         }
-
-/*
-
-         btTransform transform;
-    rigidBody->getMotionState()->getWorldTransform(transform);
-    transform.setOrigin(btVector3(X, Y, Z));  // or whatever
-    rigidBody->getMotionState()->setWorldTransform(transform);
-    rigidBody->setCenterOfMassTransform(transform);
-    */
     }
 
+    void resetCube() {
+        btRigidBody* body;
+        Ball * ball = ballList[0];
+        Ogre::Vector3 pos = ball->node->getPosition();
+        for(int i = 0; i < ballList.size(); i++) {
+            ball = ballList[i];
+            body = ball->getRigidBody();
+            Ogre::Vector3 ballPos = ball->node->getPosition();
+            // ball->node->setPosition(ballPos.x - 1800, ballPos.y, ballPos.z);
+
+            float lerp = .01f;
+
+            // ballPos is the position of the ball (mesh).
+            // positionList[i] is the target position we want to reach.
+            ballPos.x += (positionList[i].x - ballPos.x) * lerp;
+            ballPos.y += (positionList[i].y - ballPos.y) * lerp;
+            ballPos.z += (positionList[i].z - ballPos.z) * lerp;
+
+            // set position of node back to new calculated value.
+            ball->node->setPosition(ballPos);
+
+            // update the rigidbody based on this new position.
+            btTransform newTrans = body->getWorldTransform();
+            newTrans.setOrigin( btVector3((ball->node->getPosition().x), ball->node->getPosition().y,
+                   ball->node->getPosition().z));
+            body->setWorldTransform( newTrans );
+
+        }
+    }
 };

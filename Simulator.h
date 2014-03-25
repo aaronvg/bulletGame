@@ -25,6 +25,7 @@ class Simulator
     Ogre::SceneManager* sceneMgr;
     vector<Ball*> balls;
     std::deque<btRigidBody*> tiles;
+    std::deque<Ogre::SceneNode *> tileNodes;
 
     static btRigidBody* activetile;
     static Ball* mainball;
